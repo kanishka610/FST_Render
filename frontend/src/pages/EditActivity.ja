@@ -1,0 +1,35 @@
+import { useState, useEffect } from 'react';
+import axios from 'axios';
+import { useNavigate, useParams } from 'react-router-dom';
+
+function EditActivity() {
+  const { id } = useParams();
+  const [title, setTitle] = useState('');
+  const [desc, setDesc] = useState('');
+  const [date, setDate] = useState('');
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    axios.get(`http://localhost:5000/activities`).then(res => {
+      const act = res.data.find(a => a._id === id);
+      if (act) { setTitle(act.title); setDesc(act.description); setDate(act.date); }
+    })
+  }, [id]);
+
+  const handleSubmit = async () => {
+    await axios.put(`http://localhost:5000/activities/${id}`, { title, description: desc, date });
+    navigate('/list');
+  }
+
+  return (
+    <div>
+      <h2>Edit Activity</h2>
+      <input placeholder="Title" value={title} onChange={e=>setTitle(e.target.value)} />
+      <input placeholder="Description" value={desc} onChange={e=>setDesc(e.target.value)} />
+      <input type="date" value={date} onChange={e=>setDate(e.target.value)} />
+      <button onClick={handleSubmit}>Update</button>
+    </div>
+  );
+}
+
+export default EditActivity;
