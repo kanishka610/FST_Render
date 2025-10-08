@@ -1,38 +1,62 @@
-import { useState, useEffect } from 'react';
-import { useDispatch } from 'react-redux';
-import { updateActivityAPI } from '../features/activitySlice';
-import { useNavigate, useParams } from 'react-router-dom';
-import axios from 'axios';
+import React, { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useParams, useNavigate } from "react-router-dom";
+import { updateActivityAPI } from "../features/activitySlice";
 
 function EditActivity() {
-  const { id } = useParams();
-  const [title, setTitle] = useState('');
-  const [desc, setDesc] = useState('');
-  const [date, setDate] = useState('');
+  const { id } = useParams(); // Get activity ID from URL
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    axios.get(`http://localhost:5000/activities/${id}`)
-      .then(res => {
-        setTitle(res.data.title);
-        setDesc(res.data.description);
-        setDate(res.data.date);
-      });
-  }, [id]);
+  const activities = useSelector((state) => state.activities.list);
+  const activity = activities.find((act) => act._id === id);
 
-  const handleSubmit = async () => {
-    await dispatch(updateActivityAPI({ id, data: { title, description: desc, date } }));
-    navigate('/list');
-  }
+  const [title, setTitle] = useState("");
+  const [date, setDate] = useState("");
+  const [description, setDescription] = useState("");
+
+  // Populate form with existing activity data
+  useEffect(() => {
+    if (activity) {
+      setTitle(activity.title);
+      setDate(activity.date);
+      setDescription(activity.description || "");
+    }
+  }, [activity]);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    dispatch(updateActivityAPI({ id, updatedActivity: { title, date, description } }));
+    navigate("/"); // redirect to home or activity list
+  };
+
+  if (!activity) return <p>Loading activity...</p>;
 
   return (
     <div>
       <h2>Edit Activity</h2>
-      <input placeholder="Title" value={title} onChange={e => setTitle(e.target.value)} />
-      <input placeholder="Description" value={desc} onChange={e => setDesc(e.target.value)} />
-      <input type="date" value={date} onChange={e => setDate(e.target.value)} />
-      <button onClick={handleSubmit}>Update</button>
+      <form onSubmit={handleSubmit}>
+        <input
+          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="Title"
+          required
+        />
+        <input
+          type="text"
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+          placeholder="Date"
+          required
+        />
+        <textarea
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder="Description"
+        ></textarea>
+        <button type="submit">Update Activity</button>
+      </form>
     </div>
   );
 }

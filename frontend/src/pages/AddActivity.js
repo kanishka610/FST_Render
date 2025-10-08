@@ -1,28 +1,42 @@
-import { useState } from 'react';
-import { useDispatch } from 'react-redux';
-import { addActivityAPI } from '../features/activitySlice';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from "react";
+import { useDispatch } from "react-redux";
+import { addActivity } from "../features/activitySlice";
 
 function AddActivity() {
-  const [title, setTitle] = useState('');
-  const [desc, setDesc] = useState('');
-  const [date, setDate] = useState('');
   const dispatch = useDispatch();
-  const navigate = useNavigate();
+  const [title, setTitle] = useState("");
+  const [date, setDate] = useState("");
+  const [description, setDescription] = useState("");
 
-  const handleSubmit = async () => {
-    await dispatch(addActivityAPI({ title, description: desc, date }));
-    navigate('/list');
-  }
+  const handleSubmit = (e) => {
+    e.preventDefault(); // IMPORTANT
+    dispatch(addActivity({ title, date, description }));
+    setTitle("");
+    setDate("");
+    setDescription("");
+  };
 
   return (
-    <div>
-      <h2>Add Activity</h2>
-      <input placeholder="Title" value={title} onChange={e => setTitle(e.target.value)} />
-      <input placeholder="Description" value={desc} onChange={e => setDesc(e.target.value)} />
-      <input type="date" value={date} onChange={e => setDate(e.target.value)} />
-      <button onClick={handleSubmit}>Add</button>
-    </div>
+    <form onSubmit={handleSubmit}>
+      <input
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        placeholder="Title"
+        required
+      />
+      <input
+        value={date}
+        onChange={(e) => setDate(e.target.value)}
+        placeholder="Date"
+        required
+      />
+      <textarea
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+        placeholder="Description"
+      />
+      <button type="submit">Add Activity</button>
+    </form>
   );
 }
 

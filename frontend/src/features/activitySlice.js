@@ -1,49 +1,60 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axios from 'axios';
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import axios from "axios";
 
-// Replace this with your deployed Render backend URL
-const API_URL = 'https://<YOUR-RENDER-BACKEND-URL>.onrender.com/activities';
+const API_URL = "http://localhost:5000/activities";
 
 // Fetch all activities
-export const fetchActivities = createAsyncThunk('activities/fetch', async () => {
-  const res = await axios.get(API_URL);
-  return res.data;
-});
+export const fetchActivities = createAsyncThunk(
+  "activities/fetchActivities",
+  async () => {
+    const res = await axios.get(API_URL);
+    return res.data;
+  }
+);
 
-// Add new activity
-export const addActivityAPI = createAsyncThunk('activities/add', async (activity) => {
-  const res = await axios.post(API_URL, activity);
-  return res.data;
-});
+// Add a new activity
+export const addActivity = createAsyncThunk(
+  "activities/addActivity",
+  async (activity) => {
+    const res = await axios.post(API_URL, activity);
+    return res.data;
+  }
+);
 
-// Update activity
-export const updateActivityAPI = createAsyncThunk('activities/update', async ({ id, data }) => {
-  const res = await axios.put(`${API_URL}/${id}`, data);
-  return res.data;
-});
-
-// Delete activity
-export const deleteActivityAPI = createAsyncThunk('activities/delete', async (id) => {
-  await axios.delete(`${API_URL}/${id}`);
-  return id;
-});
+// Update an existing activity
+export const updateActivityAPI = createAsyncThunk(
+  "activities/updateActivityAPI",
+  async ({ id, updatedActivity }) => {
+    const res = await axios.put(`${API_URL}/${id}`, updatedActivity);
+    return res.data;
+  }
+);
 
 const activitySlice = createSlice({
-  name: 'activities',
-  initialState: { list: [], status: 'idle' },
-  reducers: {},
+  name: "activities",
+  initialState: {
+    list: [],
+    status: null,
+  },
   extraReducers: (builder) => {
     builder
-      .addCase(fetchActivities.fulfilled, (state, action) => { state.list = action.payload; })
-      .addCase(addActivityAPI.fulfilled, (state, action) => { state.list.push(action.payload); })
-      .addCase(updateActivityAPI.fulfilled, (state, action) => {
-        const index = state.list.findIndex(a => a._id === action.payload._id);
-        if (index >= 0) state.list[index] = action.payload;
+      // Fetch activities
+      .addCase(fetchActivities.fulfilled, (state, action) => {
+        state.list = action.payload;
+        state.status = "success";
       })
-      .addCase(deleteActivityAPI.fulfilled, (state, action) => {
-        state.list = state.list.filter(a => a._id !== action.payload);
+      // Add activity
+      .addCase(addActivity.fulfilled, (state, action) => {
+        state.list.push(action.payload);
+      })
+      // Update activity
+      .addCase(updateActivityAPI.fulfilled, (state, action) => {
+        const index = state.list.findIndex(
+          (activity) => activity._id === action.payload._id
+        );
+        if (index !== -1) state.list[index] = action.payload;
       });
-  }
+  },
 });
 
 export default activitySlice.reducer;
